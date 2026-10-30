@@ -18,7 +18,7 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-ink/10 bg-paper/90 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex items-center gap-2">
           <span aria-hidden className="text-2xl">
             🌭

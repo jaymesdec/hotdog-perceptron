@@ -52,34 +52,38 @@ export function TestScene({ onReflect }: { onReflect: () => void }) {
         </div>
       </header>
 
-      <Workbench item={item} params={state.params} showLabel={Boolean(result)} reducedMotion={reducedMotion} />
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px] lg:items-start">
+        <Workbench item={item} params={state.params} showLabel={Boolean(result)} reducedMotion={reducedMotion} />
 
-      <div className="rounded-2xl border border-ink/10 bg-shelf/40 p-4">
-        {!result ? (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-ink/80">Run this unseen image through the locked detector.</p>
-            <Button onClick={() => dispatch({ type: 'predictTestItem', itemId: item.id })}>
-              Predict (locked)
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-ink/70">Predicted</span>
-              <Verdict label={result.prediction} size="sm" />
-              <span className="text-sm text-ink/70">· truth</span>
-              <Verdict label={item.label} size="sm" />
-              <CorrectnessMark correct={result.correct} />
-            </div>
-            {isLast ? (
-              <Button onClick={onReflect} disabled={!allRevealed}>
-                Reflect on the results →
+        <aside className="rounded-2xl border border-ink/10 bg-shelf/40 p-4 lg:sticky lg:top-20">
+          {!result ? (
+            <div className="space-y-3">
+              <p className="text-sm text-ink/80">Run this unseen image through the locked detector.</p>
+              <Button className="w-full" onClick={() => dispatch({ type: 'predictTestItem', itemId: item.id })}>
+                Predict (locked)
               </Button>
-            ) : (
-              <Button onClick={() => setIndex((previous) => previous + 1)}>Next image →</Button>
-            )}
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-ink/70">Predicted</span>
+                <Verdict label={result.prediction} size="sm" />
+                <span className="text-sm text-ink/70">· truth</span>
+                <Verdict label={item.label} size="sm" />
+                <CorrectnessMark correct={result.correct} />
+              </div>
+              {isLast ? (
+                <Button className="w-full" onClick={onReflect} disabled={!allRevealed}>
+                  Reflect on the results →
+                </Button>
+              ) : (
+                <Button className="w-full" onClick={() => setIndex((previous) => previous + 1)}>
+                  Next image →
+                </Button>
+              )}
+            </div>
+          )}
+        </aside>
       </div>
     </section>
   )

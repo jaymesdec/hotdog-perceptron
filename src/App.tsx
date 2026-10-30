@@ -36,10 +36,10 @@ function Shell() {
   return (
     <div className="min-h-full">
       <TopBar />
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-4 py-6">
         {showWelcome ? <Welcome onDismiss={() => setWelcomeDismissed(true)} /> : <Scene />}
       </main>
-      <footer className="mx-auto max-w-5xl px-4 pb-10 pt-4 text-center text-xs text-ink/40">
+      <footer className="mx-auto max-w-6xl px-4 pb-10 pt-4 text-center text-xs text-ink/40">
         A single perceptron with three features. The score is a distance from the decision line — not a
         probability.
       </footer>

@@ -64,17 +64,19 @@ export function TrainingScene() {
         />
       </header>
 
-      <Workbench
-        item={item}
-        params={displayParams}
-        showLabel
-        pulse={state.stepPhase === 'resolved' && (lastEntry?.changed ?? false)}
-        changedKeys={changedKeys}
-        reducedMotion={reducedMotion}
-      />
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px] lg:items-start">
+        <Workbench
+          item={item}
+          params={displayParams}
+          showLabel
+          pulse={state.stepPhase === 'resolved' && (lastEntry?.changed ?? false)}
+          changedKeys={changedKeys}
+          reducedMotion={reducedMotion}
+        />
 
-      {/* Contextual controls + prompts, revealed by phase (spec §5C, §6 Scene 4) */}
-      <div className="rounded-2xl border border-ink/10 bg-shelf/40 p-4">
+        {/* Contextual controls + prompts, revealed by phase (spec §5C, §6 Scene 4).
+            Kept in a sticky side panel so the interactive controls stay above the fold. */}
+        <aside className="rounded-2xl border border-ink/10 bg-shelf/40 p-4 lg:sticky lg:top-20">
         {state.stepPhase === 'show' && (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-ink/80">
@@ -160,6 +162,7 @@ export function TrainingScene() {
             }}
           />
         )}
+        </aside>
       </div>
     </section>
   )

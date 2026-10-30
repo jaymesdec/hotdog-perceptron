@@ -39,39 +39,41 @@ export function SandboxScene({ onDone }: { onDone: () => void }) {
         <ShowMathToggle />
       </header>
 
-      <Workbench item={item} params={state.sandboxParams} showLabel reducedMotion={reducedMotion} />
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px] lg:items-start">
+        <Workbench item={item} params={state.sandboxParams} showLabel reducedMotion={reducedMotion} />
 
-      <div className="rounded-2xl border border-ink/10 bg-shelf/40 p-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-sm font-semibold text-ink">Adjust the parameters by hand</span>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => setSampleIndex((previous) => (previous + 1) % SAMPLE_ITEMS.length)}>
-              Try another food
-            </Button>
+        <aside className="space-y-4 lg:sticky lg:top-20">
+          <div className="rounded-2xl border border-ink/10 bg-shelf/40 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-ink">Adjust the parameters by hand</span>
+              <Button variant="ghost" onClick={() => setSampleIndex((previous) => (previous + 1) % SAMPLE_ITEMS.length)}>
+                Try another food
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {FEATURE_KEYS.map((featureKey) => (
+                <SliderRow
+                  key={featureKey}
+                  label={`${FEATURE_LABELS[featureKey]} weight`}
+                  concept="weight"
+                  value={state.sandboxParams.weights[featureKey]}
+                  onChange={(value) => dispatch({ type: 'setSandboxWeight', feature: featureKey as FeatureKey, value })}
+                />
+              ))}
+              <SliderRow
+                label="bias"
+                concept="bias"
+                value={state.sandboxParams.bias}
+                onChange={(value) => dispatch({ type: 'setSandboxBias', value })}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          {FEATURE_KEYS.map((featureKey) => (
-            <SliderRow
-              key={featureKey}
-              label={`${FEATURE_LABELS[featureKey]} weight`}
-              concept="weight"
-              value={state.sandboxParams.weights[featureKey]}
-              onChange={(value) => dispatch({ type: 'setSandboxWeight', feature: featureKey as FeatureKey, value })}
-            />
-          ))}
-          <SliderRow
-            label="bias"
-            concept="bias"
-            value={state.sandboxParams.bias}
-            onChange={(value) => dispatch({ type: 'setSandboxBias', value })}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={onDone}>I'm ready to be the researcher →</Button>
+          <Button onClick={onDone} className="w-full">
+            I'm ready to be the researcher →
+          </Button>
+        </aside>
       </div>
     </section>
   )
