@@ -217,6 +217,7 @@ export type Intent =
   | { type: 'enterTest' }
   | { type: 'predictTestItem'; itemId: string }
   | { type: 'enterReflect' }
+  | { type: 'goToSelect' }
   | { type: 'recordRun' }
   | { type: 'enterSandbox' }
   | { type: 'setSandboxWeight'; feature: keyof Params['weights']; value: number }
@@ -547,6 +548,10 @@ export function reducer(state: AppState, intent: Intent): AppState {
 
     case 'enterReflect': {
       return { ...state, mode: 'reflect' }
+    }
+
+    case 'goToSelect': {
+      return { ...state, mode: 'select' }
     }
 
     case 'recordRun': {
