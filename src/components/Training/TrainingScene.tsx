@@ -80,7 +80,16 @@ export function TrainingScene() {
             <p className="text-sm text-ink/80">
               Which input has the strongest effect on the score right now? Make a prediction.
             </p>
-            <Button onClick={() => dispatch({ type: 'predict' })}>Predict</Button>
+            <div className="flex gap-2">
+              {/* "Run one epoch" (spec §5C) is offered only at the very start of an
+                  epoch so it can't double-count examples already stepped through. */}
+              {state.currentIndex === 0 && (
+                <Button variant="ghost" onClick={() => dispatch({ type: 'runOneEpoch' })}>
+                  Run the whole epoch
+                </Button>
+              )}
+              <Button onClick={() => dispatch({ type: 'predict' })}>Predict</Button>
+            </div>
           </div>
         )}
 

@@ -16,15 +16,8 @@
  * no randomness beyond the seeded RNG.
  */
 
-import {
-  classify,
-  computeError,
-  predict,
-  score,
-  trainStep,
-  update,
-} from './perceptron'
-import { nextSeed, randomParams } from './rng'
+import { computeError, predict, score, trainStep, update } from './perceptron'
+import { createRandom, nextSeed, randomParams } from './rng'
 import type {
   FeatureVector,
   Label,
@@ -32,7 +25,6 @@ import type {
   PerceptronError,
 } from './types'
 import {
-  CHALLENGE_COLLECTION,
   DATASET,
   findContradictions,
   getItem,
@@ -103,6 +95,8 @@ export interface AppState {
   readonly baselineCorrect: number | null
   readonly testResults: Readonly<Record<string, TestResult>>
   readonly runComparisons: readonly RunRecord[]
+  /** True once a held-out test item has been reassigned into training (spec §9). */
+  readonly heldOutCompromised: boolean
   // Sandbox (Scene 1) is isolated from the training run:
   readonly sandboxParams: Params
   // Undo stack (bounded); snapshots carry an empty stack to stay flat.
@@ -139,6 +133,7 @@ export function createInitialState(seed: number = DEFAULT_SEED): AppState {
     baselineCorrect: null,
     testResults: {},
     runComparisons: [],
+    heldOutCompromised: false,
     sandboxParams: initialParams,
     undoStack: [],
   }
@@ -158,12 +153,6 @@ export function testingItems(state: AppState): FoodItem[] {
   return itemsInTray(state, 'test')
 }
 
-export function orderedTrainingItems(state: AppState): FoodItem[] {
-  return state.trainingOrder
-    .map((id) => getItem(id))
-    .filter((item): item is FoodItem => item !== undefined)
-}
-
 export function currentTrainingItem(state: AppState): FoodItem | null {
   const id = state.trainingOrder[state.currentIndex]
   return id ? (getItem(id) ?? null) : null
@@ -174,6 +163,7 @@ export interface DatasetWarnings {
   readonly testingEmpty: boolean
   readonly trainingSingleClass: boolean
   readonly trainingHasContradiction: boolean
+  readonly heldOutCompromised: boolean
 }
 
 export function datasetWarnings(state: AppState): DatasetWarnings {
@@ -184,6 +174,7 @@ export function datasetWarnings(state: AppState): DatasetWarnings {
     testingEmpty: testingItems(state).length === 0,
     trainingSingleClass: training.length > 0 && labels.size === 1,
     trainingHasContradiction: findContradictions(training).length > 0,
+    heldOutCompromised: state.heldOutCompromised,
   }
 }
 
@@ -270,20 +261,25 @@ export function reducer(state: AppState, intent: Intent): AppState {
 
   switch (intent.type) {
     case 'assignCard': {
+      // Moving a held-out test item into training compromises the test set — flag
+      // it so the UI can warn (spec §9). The flag latches until assignments reset.
+      const compromisesHeldOut =
+        intent.tray === 'train' && state.assignments[intent.itemId] === 'test'
       return {
         ...state,
         assignments: { ...state.assignments, [intent.itemId]: intent.tray },
+        heldOutCompromised: state.heldOutCompromised || compromisesHeldOut,
       }
     }
 
     case 'applyDefaultSplit': {
-      return { ...state, assignments: defaultSplit() }
+      return { ...state, assignments: defaultSplit(), heldOutCompromised: false }
     }
 
     case 'clearAssignments': {
       const cleared: Record<string, Tray> = {}
       for (const item of DATASET) cleared[item.id] = 'unassigned'
-      return { ...state, assignments: cleared }
+      return { ...state, assignments: cleared, heldOutCompromised: false }
     }
 
     case 'randomize': {
@@ -350,6 +346,9 @@ export function reducer(state: AppState, intent: Intent): AppState {
     case 'startTraining': {
       const order = trainingItems(state).map((item) => item.id)
       const ordered = state.shuffle ? shuffleWithSeed(order, state.seed) : order
+      // Starting a run resets all run-scoped accumulators so a second run (via
+      // "Try different training examples" or "Randomize & retrain") never splices
+      // in stale test results, mistake bars, or history from the previous run.
       return {
         ...state,
         mode: 'train',
@@ -358,6 +357,9 @@ export function reducer(state: AppState, intent: Intent): AppState {
         epoch: 1,
         stepPhase: 'show',
         currentEpochMistakes: 0,
+        epochMistakes: [],
+        testResults: {},
+        history: [],
         currentScore: null,
         currentPrediction: null,
         currentTarget: null,
@@ -609,26 +611,13 @@ export function reducer(state: AppState, intent: Intent): AppState {
   }
 }
 
-/** Deterministic Fisher–Yates shuffle driven by the seeded RNG. */
+/** Deterministic Fisher–Yates shuffle driven by the shared seeded RNG. */
 function shuffleWithSeed(ids: readonly string[], seed: number): string[] {
   const result = [...ids]
-  let state = seed >>> 0
-  const next = () => {
-    state = (state + 0x6d2b79f5) | 0
-    let mixed = Math.imul(state ^ (state >>> 15), 1 | state)
-    mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed
-    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296
-  }
+  const next = createRandom(seed)
   for (let index = result.length - 1; index > 0; index--) {
     const swapWith = Math.floor(next() * (index + 1))
     ;[result[index], result[swapWith]] = [result[swapWith], result[index]]
   }
   return result
 }
-
-/** Convenience used by tests and the sandbox to read a live classification. */
-export function liveClassification(params: Params, features: FeatureVector) {
-  return { scoreValue: score(features, params), prediction: classify(features, params) }
-}
-
-export { CHALLENGE_COLLECTION, STARTER_COLLECTION }

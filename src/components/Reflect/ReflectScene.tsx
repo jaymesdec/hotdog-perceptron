@@ -1,5 +1,5 @@
 import { useStore } from '../../store'
-import { testingItems } from '../../engine/state'
+import { testingItems, type TestResult } from '../../engine/state'
 import { FEATURE_KEYS } from '../../engine/types'
 import { FoodArt } from '../FoodArt'
 import { FeatureChip } from '../common/FeatureChip'
@@ -22,10 +22,14 @@ export function ReflectScene({
 }) {
   const { state, dispatch } = useStore()
 
-  // Surprising mistakes: test items the locked detector got wrong.
+  // Surprising mistakes: test items the locked detector got wrong. The type
+  // guard narrows `result` to a defined TestResult so no non-null assertion is
+  // needed downstream.
   const testMistakes = testingItems(state)
-    .map((item) => ({ item, result: state.testResults[item.id] }))
-    .filter((entry) => entry.result && !entry.result.correct)
+    .map((item) => ({ item, result: state.testResults[item.id] as TestResult | undefined }))
+    .filter((entry): entry is { item: (typeof entry)['item']; result: TestResult } =>
+      entry.result !== undefined && !entry.result.correct,
+    )
 
   return (
     <section aria-labelledby="reflect-heading" className="space-y-5">
@@ -61,7 +65,7 @@ export function ReflectScene({
                     ))}
                   </div>
                   <div className="flex items-center gap-2 text-xs">
-                    said <Verdict label={result!.prediction} size="sm" /> · truth{' '}
+                    said <Verdict label={result.prediction} size="sm" /> · truth{' '}
                     <Verdict label={item.label} size="sm" />
                     <CorrectnessMark correct={false} />
                   </div>

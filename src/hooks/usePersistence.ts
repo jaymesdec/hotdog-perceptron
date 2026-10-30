@@ -29,13 +29,34 @@ function storageAvailable(): boolean {
   }
 }
 
+/**
+ * Minimal runtime shape check. A same-version but malformed payload (schema
+ * drift, hand-edited storage) must not flow unchecked into the reducer's initial
+ * state, so we confirm the handful of fields the app reads before trusting it.
+ */
+function looksLikeAppState(candidate: unknown): candidate is Omit<AppState, 'undoStack'> {
+  if (typeof candidate !== 'object' || candidate === null) return false
+  const value = candidate as Record<string, unknown>
+  const params = value.params as { weights?: unknown; bias?: unknown } | undefined
+  return (
+    typeof value.assignments === 'object' &&
+    value.assignments !== null &&
+    typeof value.seed === 'number' &&
+    typeof value.mode === 'string' &&
+    typeof params === 'object' &&
+    params !== null &&
+    typeof params.weights === 'object' &&
+    typeof params.bias === 'number'
+  )
+}
+
 export function loadState(): AppState | null {
   if (!storageAvailable()) return null
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as PersistedEnvelope
-    if (!parsed || parsed.version !== STORAGE_VERSION || !parsed.state) return null
+    if (!parsed || parsed.version !== STORAGE_VERSION || !looksLikeAppState(parsed.state)) return null
     return { ...parsed.state, undoStack: [] }
   } catch {
     return null

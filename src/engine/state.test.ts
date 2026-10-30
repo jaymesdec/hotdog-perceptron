@@ -273,6 +273,66 @@ describe('startOver', () => {
   })
 })
 
+describe('run-scoped state is reset between runs (spec §6 Scene 7 regression)', () => {
+  it('startTraining clears testResults, epochMistakes, and history from a prior run', () => {
+    // Run 1: train, test one held-out item.
+    let state = withSeparableSplit(createInitialState(7))
+    state = reducer(state, { type: 'startTraining' })
+    state = reducer(state, { type: 'runOneEpoch' })
+    state = reducer(state, { type: 'enterTest' })
+    state = reducer(state, { type: 'predictTestItem', itemId: 'hd_mustard' })
+    expect(Object.keys(state.testResults).length).toBe(1)
+    expect(state.epochMistakes.length).toBeGreaterThan(0)
+    expect(state.history.length).toBeGreaterThan(0)
+
+    // Run 2: the learner goes back and retrains. Starting the run must wipe the
+    // stale test result, mistake bars, and history so they don't leak forward.
+    state = reducer(state, { type: 'goToSelect' })
+    state = reducer(state, { type: 'startTraining' })
+    expect(state.testResults).toEqual({})
+    expect(state.epochMistakes).toEqual([])
+    expect(state.history).toEqual([])
+  })
+
+  it('randomize-and-retrain does not fold a prior run\'s test accuracy into the new run', () => {
+    let state = withSeparableSplit(createInitialState(7))
+    state = reducer(state, { type: 'startTraining' })
+    state = reducer(state, { type: 'runOneEpoch' })
+    state = reducer(state, { type: 'enterTest' })
+    state = reducer(state, { type: 'predictTestItem', itemId: 'hd_mustard' })
+    // Mirror ReflectScene's "Randomize & retrain" affordance, then restart.
+    state = reducer(state, { type: 'randomize' })
+    state = reducer(state, { type: 'enterBaseline' })
+    state = reducer(state, { type: 'startTraining' })
+    expect(testSummary(state).revealed).toBe(0)
+  })
+})
+
+describe('held-out compromise warning (spec §9)', () => {
+  it('flags when a test item is reassigned into training', () => {
+    let state = createInitialState()
+    state = reducer(state, { type: 'assignCard', itemId: 'hd_mustard', tray: 'test' })
+    expect(datasetWarnings(state).heldOutCompromised).toBe(false)
+    state = reducer(state, { type: 'assignCard', itemId: 'hd_mustard', tray: 'train' })
+    expect(datasetWarnings(state).heldOutCompromised).toBe(true)
+  })
+
+  it('does not flag a fresh unassigned → train assignment', () => {
+    let state = createInitialState()
+    state = reducer(state, { type: 'assignCard', itemId: 'hd_plain', tray: 'train' })
+    expect(datasetWarnings(state).heldOutCompromised).toBe(false)
+  })
+
+  it('clears the flag on clearAssignments and default split', () => {
+    let state = createInitialState()
+    state = reducer(state, { type: 'assignCard', itemId: 'hd_mustard', tray: 'test' })
+    state = reducer(state, { type: 'assignCard', itemId: 'hd_mustard', tray: 'train' })
+    expect(datasetWarnings(state).heldOutCompromised).toBe(true)
+    state = reducer(state, { type: 'clearAssignments' })
+    expect(datasetWarnings(state).heldOutCompromised).toBe(false)
+  })
+})
+
 describe('dataset integrity (guard for the whole suite)', () => {
   it('exposes a stable set of ids', () => {
     expect(DATASET.length).toBeGreaterThan(0)

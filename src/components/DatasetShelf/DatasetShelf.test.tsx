@@ -34,6 +34,17 @@ describe('DatasetShelf', () => {
     expect(screen.getByText(/only one class/i)).toBeInTheDocument()
   })
 
+  it('warns when a feature-label contradiction is assigned into training', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<DatasetShelf onReady={() => {}} />)
+    // hd_both (1,1,1, hot dog) and hamburger (1,1,1, not) share a feature vector.
+    const assignTrain = (name: string) =>
+      user.click(within(screen.getByRole('group', { name: `Assign ${name}` })).getByRole('button', { name: 'Train' }))
+    await assignTrain('Loaded hot dog')
+    await assignTrain('Hamburger')
+    expect(screen.getByText(/identical features but opposite labels/i)).toBeInTheDocument()
+  })
+
   it('offers a balanced split and enables proceeding once trays are valid', async () => {
     const user = userEvent.setup()
     const onReady = vi.fn()

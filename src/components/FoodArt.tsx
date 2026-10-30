@@ -172,11 +172,23 @@ function Donut() {
       <Plate />
       <circle cx="80" cy="80" r="36" fill="#E89BB0" stroke="#C97089" strokeWidth="3" />
       <circle cx="80" cy="80" r="13" fill={PLATE} />
-      {[[62, 66, '#5AB1E8'], [98, 70, '#F2C14E'], [70, 98, '#6DB33F'], [100, 96, '#C0392B']].map(
-        ([cx, cy, color], index) => (
-          <rect key={index} x={cx as number} y={cy as number} width="8" height="3" rx="1.5" fill={color as string} transform={`rotate(${index * 40} ${cx} ${cy})`} />
-        ),
-      )}
+      {([
+        [62, 66, '#5AB1E8'],
+        [98, 70, '#F2C14E'],
+        [70, 98, '#6DB33F'],
+        [100, 96, '#C0392B'],
+      ] as const).map(([cx, cy, color], index) => (
+        <rect
+          key={index}
+          x={cx}
+          y={cy}
+          width="8"
+          height="3"
+          rx="1.5"
+          fill={color}
+          transform={`rotate(${index * 40} ${cx} ${cy})`}
+        />
+      ))}
     </>
   )
 }

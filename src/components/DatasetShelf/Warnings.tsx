@@ -15,6 +15,10 @@ export function Warnings({ warnings }: { warnings: DatasetWarnings }) {
     messages.push(
       'Heads up: two training examples share identical features but opposite labels. No detector using only these three features can ever get both right.',
     )
+  if (warnings.heldOutCompromised)
+    messages.push(
+      'You moved a held-out test image into training. Training on it means your test is no longer a fair check of unseen examples.',
+    )
 
   if (messages.length === 0) return null
 

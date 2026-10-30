@@ -45,4 +45,10 @@ describe('Workbench', () => {
     renderWithUi(<Workbench item={item} params={params(2, 1, 2, -1)} showLabel={false} />)
     expect(screen.getByText(/label hidden in test/i)).toBeInTheDocument()
   })
+
+  it('predicts Hot dog at exactly the threshold (score = 0, inclusive)', () => {
+    // All-zero params over any features gives score 0 -> at or above the line.
+    renderWithUi(<Workbench item={item} params={params(0, 0, 0, 0)} showLabel />)
+    expect(screen.getByText(/at or above the line → Hot dog/i)).toBeInTheDocument()
+  })
 })

@@ -8,7 +8,8 @@ afterEach(() => window.localStorage.clear())
 /**
  * End-to-end smoke: drive the real App (all providers + scene wiring) through
  * the full journey — welcome → sort → baseline → train → epoch → test → reflect
- * — to catch runtime wiring errors a unit test would miss.
+ * — actually reaching test and reflect modes, to catch runtime wiring errors a
+ * unit test would miss.
  */
 describe('App journey', () => {
   it('walks from welcome through training, testing, and reflection without crashing', async () => {
@@ -29,23 +30,37 @@ describe('App journey', () => {
     expect(screen.getByRole('heading', { name: /before training/i })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /start training/i }))
 
-    // Train: run full epochs via the fast path until the epoch-end screen,
-    // then keep going until we can move to testing.
+    // Train: step through every example interactively (Scene 4 controls) until
+    // the epoch-end summary appears.
     expect(screen.getByRole('heading', { name: /Train, one example/i })).toBeInTheDocument()
+    for (let step = 0; step < 10; step++) {
+      const predictButton = screen.queryByRole('button', { name: /^predict$/i })
+      if (!predictButton) break // reached epoch end
+      await user.click(predictButton)
+      await user.click(screen.getByRole('button', { name: /compare to label/i }))
+      const resolveButton =
+        screen.queryByRole('button', { name: /apply learning update/i }) ??
+        screen.getByRole('button', { name: /check what happens/i })
+      await user.click(resolveButton)
+      await user.click(screen.getByRole('button', { name: /next example/i }))
+    }
 
-    // Step the first example interactively to exercise Scene 4 controls.
-    await user.click(screen.getByRole('button', { name: /^predict$/i }))
-    await user.click(screen.getByRole('button', { name: /compare to label/i }))
-    // Either "apply learning update" (mistake) or "check what happens" (correct).
-    const resolveButton =
-      screen.queryByRole('button', { name: /apply learning update/i }) ??
-      screen.getByRole('button', { name: /check what happens/i })
-    await user.click(resolveButton)
-    await user.click(screen.getByRole('button', { name: /next example/i }))
+    // Epoch end → go to testing.
+    const goToTest = await screen.findByRole('button', { name: /go to testing/i })
+    await user.click(goToTest)
 
-    // The app is still alive and showing the training workbench.
-    expect(screen.getByRole('heading', { name: /Train, one example/i })).toBeInTheDocument()
-    expect(screen.getAllByText(/Prediction/i).length).toBeGreaterThan(0)
+    // Test mode: locked banner is shown; predict through every held-out image.
+    expect(screen.getByText(/TEST MODE — weights and bias locked/i)).toBeInTheDocument()
+    for (let step = 0; step < 12; step++) {
+      await user.click(screen.getByRole('button', { name: /predict \(locked\)/i }))
+      const next = screen.queryByRole('button', { name: /next image/i })
+      if (!next) break // last image — the reflect button is shown instead
+      await user.click(next)
+    }
+    await user.click(screen.getByRole('button', { name: /reflect on the results/i }))
+
+    // Reflect mode: the identical-vector reveal is present.
+    expect(screen.getByRole('heading', { name: /reflect & iterate/i })).toBeInTheDocument()
   })
 
   it('renders the top bar with Start over and the Show the math toggle', () => {
