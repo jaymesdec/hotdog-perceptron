@@ -141,34 +141,31 @@ export function findContradictions(items: readonly FoodItem[]): Contradiction[] 
 }
 
 /**
- * Brute-force search for integer weights and bias (within ±range) that classify
- * every given item correctly. Returns a witness when one exists. Finding a
- * witness proves linear separability; this is used to guarantee the starter set
- * stays learnable even as authors edit the data.
+ * Brute-force search for integer weights (within ±range) that classify every
+ * given item correctly, using the bias-free, strict-threshold model the engine
+ * uses (score = Σ xᵢ·wᵢ, predict Hot dog when score > 0). Returns a witness when
+ * one exists. Finding a witness proves linear separability through the origin;
+ * this guarantees the starter set stays learnable even as authors edit the data.
  */
 export function findSeparatingParams(
   items: readonly FoodItem[],
   range = 3,
-): { weights: Record<FeatureKey, number>; bias: number } | null {
+): { weights: Record<FeatureKey, number> } | null {
   for (let weightKetchup = -range; weightKetchup <= range; weightKetchup++) {
     for (let weightMustard = -range; weightMustard <= range; weightMustard++) {
       for (let weightBun = -range; weightBun <= range; weightBun++) {
-        for (let bias = -range; bias <= range; bias++) {
-          const candidate = {
-            weights: { ketchup: weightKetchup, mustard: weightMustard, bun: weightBun },
-            bias,
-          }
-          const classifiesAll = items.every((item) => {
-            const scoreValue =
-              item.features.ketchup * candidate.weights.ketchup +
-              item.features.mustard * candidate.weights.mustard +
-              item.features.bun * candidate.weights.bun +
-              candidate.bias
-            const prediction = scoreValue >= 0 ? 1 : 0
-            return prediction === item.label
-          })
-          if (classifiesAll) return candidate
+        const candidate = {
+          weights: { ketchup: weightKetchup, mustard: weightMustard, bun: weightBun },
         }
+        const classifiesAll = items.every((item) => {
+          const scoreValue =
+            item.features.ketchup * candidate.weights.ketchup +
+            item.features.mustard * candidate.weights.mustard +
+            item.features.bun * candidate.weights.bun
+          const prediction = scoreValue > 0 ? 1 : 0
+          return prediction === item.label
+        })
+        if (classifiesAll) return candidate
       }
     }
   }

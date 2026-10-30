@@ -5,7 +5,6 @@
 
 export type Concept =
   | 'weight'
-  | 'bias'
   | 'score'
   | 'threshold'
   | 'label'
@@ -24,17 +23,13 @@ export const EXPLANATIONS: Record<Concept, { title: string; body: string }> = {
     title: 'Weight',
     body: 'How much one feature pushes the score. A big positive weight means "this feature makes it more likely a hot dog"; a negative weight pushes the other way.',
   },
-  bias: {
-    title: 'Bias',
-    body: 'A number added to every score no matter what the features are. It shifts how eager the detector is to say "Hot dog". It is not attached to any food feature.',
-  },
   score: {
     title: 'Score (distance from the decision line)',
-    body: 'Each feature times its weight, all added up, plus the bias. It is a signed distance from the decision line — not a probability and not a confidence percentage.',
+    body: 'Each feature times its weight, all added up. It is a signed distance from the decision line — not a probability and not a confidence percentage.',
   },
   threshold: {
     title: 'Threshold',
-    body: 'The decision line, fixed at zero. A score of zero or above predicts "Hot dog"; below zero predicts "Not hot dog".',
+    body: 'The decision line, fixed at zero. A score above zero predicts "Hot dog"; a score of zero or below predicts "Not hot dog".',
   },
   label: {
     title: 'Label',
@@ -54,6 +49,6 @@ export const EXPLANATIONS: Record<Concept, { title: string; body: string }> = {
   },
   update: {
     title: 'Learning update',
-    body: 'When the detector makes a mistake, the classic rule nudges the weights of the active features and the bias. A correct guess changes nothing.',
+    body: 'When the detector makes a mistake, the classic rule nudges the weights of the active features. A correct guess changes nothing.',
   },
 }

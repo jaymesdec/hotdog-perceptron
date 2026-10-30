@@ -9,7 +9,9 @@ export function ScoreTrack({ scoreValue }: { scoreValue: number }) {
   const span = Math.max(3, Math.ceil(Math.abs(scoreValue)) + 1)
   // Map score in [-span, span] to 0..100% across the track.
   const markerPercent = ((scoreValue + span) / (2 * span)) * 100
-  const isHotDogSide = scoreValue >= 0
+  // Strict threshold: a score must be ABOVE the line to count as a hot dog, so a
+  // score of exactly 0 (no features present) reads as "not hot dog".
+  const isHotDogSide = scoreValue > 0
 
   return (
     <div>
@@ -46,7 +48,7 @@ export function ScoreTrack({ scoreValue }: { scoreValue: number }) {
       <p className="mt-1 text-center text-sm">
         score = <span className="font-mono font-bold">{formatSigned(scoreValue)}</span>{' '}
         <span className="text-ink/60">
-          ({isHotDogSide ? 'at or above' : 'below'} the line → {isHotDogSide ? 'Hot dog' : 'Not hot dog'})
+          ({isHotDogSide ? 'above' : 'not above'} the line → {isHotDogSide ? 'Hot dog' : 'Not hot dog'})
         </span>
       </p>
     </div>

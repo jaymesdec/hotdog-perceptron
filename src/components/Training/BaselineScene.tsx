@@ -18,7 +18,7 @@ export function BaselineScene({ onStartTraining }: { onStartTraining: () => void
         Before training — a baseline
       </h2>
       <p className="text-sm text-ink/70">
-        Your starting weights and bias are random and frozen. Let's see how many training examples this
+        Your starting weights are random and frozen. Let's see how many training examples this
         untrained detector already gets right, just by luck.
       </p>
 

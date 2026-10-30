@@ -36,7 +36,7 @@ export function TestScene({ onReflect }: { onReflect: () => void }) {
         className="flex items-center justify-between gap-3 rounded-2xl border-2 border-no bg-no/10 px-4 py-3"
       >
         <div className="flex items-center gap-2 font-display font-bold text-no">
-          <span aria-hidden>🔒</span> TEST MODE — weights and bias locked
+          <span aria-hidden>🔒</span> TEST MODE — weights locked
         </div>
         <span className="flex items-center gap-1 text-sm text-ink/70">
           testing never changes parameters <ExplainThis concept="testSet" />

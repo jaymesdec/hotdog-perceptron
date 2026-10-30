@@ -50,7 +50,7 @@ describe('App journey', () => {
     await user.click(goToTest)
 
     // Test mode: locked banner is shown; predict through every held-out image.
-    expect(screen.getByText(/TEST MODE — weights and bias locked/i)).toBeInTheDocument()
+    expect(screen.getByText(/TEST MODE — weights locked/i)).toBeInTheDocument()
     for (let step = 0; step < 12; step++) {
       await user.click(screen.getByRole('button', { name: /predict \(locked\)/i }))
       const next = screen.queryByRole('button', { name: /next image/i })

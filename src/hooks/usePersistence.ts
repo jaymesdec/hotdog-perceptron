@@ -37,7 +37,7 @@ function storageAvailable(): boolean {
 function looksLikeAppState(candidate: unknown): candidate is Omit<AppState, 'undoStack'> {
   if (typeof candidate !== 'object' || candidate === null) return false
   const value = candidate as Record<string, unknown>
-  const params = value.params as { weights?: unknown; bias?: unknown } | undefined
+  const params = value.params as { weights?: unknown } | undefined
   return (
     typeof value.assignments === 'object' &&
     value.assignments !== null &&
@@ -46,7 +46,7 @@ function looksLikeAppState(candidate: unknown): candidate is Omit<AppState, 'und
     typeof params === 'object' &&
     params !== null &&
     typeof params.weights === 'object' &&
-    typeof params.bias === 'number'
+    params.weights !== null
   )
 }
 

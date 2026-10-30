@@ -8,7 +8,6 @@
  *  - No parameter mutation in test mode or baseline mode.
  *  - A correct prediction produces no update.
  *  - Zero-valued features produce zero weight change (enforced in the engine).
- *  - The bias update is independent of feature values (enforced in the engine).
  *  - Same seed + same data order + same actions reproduce the same run.
  *  - The current example's prediction uses the PRE-update weights.
  *
@@ -212,7 +211,6 @@ export type Intent =
   | { type: 'recordRun' }
   | { type: 'enterSandbox' }
   | { type: 'setSandboxWeight'; feature: keyof Params['weights']; value: number }
-  | { type: 'setSandboxBias'; value: number }
   | { type: 'exitSandbox' }
   | { type: 'undo' }
   | { type: 'startOver' }
@@ -582,10 +580,6 @@ export function reducer(state: AppState, intent: Intent): AppState {
           weights: { ...state.sandboxParams.weights, [intent.feature]: intent.value },
         },
       }
-    }
-
-    case 'setSandboxBias': {
-      return { ...state, sandboxParams: { ...state.sandboxParams, bias: intent.value } }
     }
 
     case 'exitSandbox': {

@@ -8,12 +8,12 @@ import { renderWithUi } from '../../test/renderWithProviders'
 describe('ExplainThis (spec §8)', () => {
   it('opens and closes a plain-language explanation for a concept', async () => {
     const user = userEvent.setup()
-    renderWithUi(<ExplainThis concept="bias" />)
-    const button = screen.getByRole('button', { name: /explain bias/i })
+    renderWithUi(<ExplainThis concept="weight" />)
+    const button = screen.getByRole('button', { name: /explain weight/i })
     expect(button).toHaveAttribute('aria-expanded', 'false')
     await user.click(button)
     expect(button).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByRole('note')).toHaveTextContent(/added to every score/i)
+    expect(screen.getByRole('note')).toHaveTextContent(/how much one feature pushes the score/i)
     await user.click(button)
     expect(button).toHaveAttribute('aria-expanded', 'false')
   })

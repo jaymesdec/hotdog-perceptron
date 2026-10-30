@@ -253,7 +253,7 @@ describe('sandbox isolation (spec §6 Scene 1)', () => {
     const runParams = state.params
     state = reducer(state, { type: 'enterSandbox' })
     state = reducer(state, { type: 'setSandboxWeight', feature: 'ketchup', value: 5 })
-    state = reducer(state, { type: 'setSandboxBias', value: -3 })
+    state = reducer(state, { type: 'setSandboxWeight', feature: 'bun', value: -3 })
     expect(state.sandboxParams.weights.ketchup).toBe(5)
     expect(state.params).toEqual(runParams)
     expect(state.history).toHaveLength(0)

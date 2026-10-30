@@ -3,9 +3,9 @@ import { useUi } from '../../ui'
 import { formatSigned } from './ScoreTrack'
 
 /**
- * The live equation (spec §5B): each product, the sum, and the bias, with exact
- * numbers. "Show the math" (spec §8) switches between a plain visual pathway and
- * the symbolic form.
+ * The live equation (spec §5B): each product and the sum, with exact numbers.
+ * "Show the math" (spec §8) switches between a plain visual pathway and the
+ * symbolic form. (No bias term in version one.)
  */
 export function Equation({ features, params }: { features: FeatureVector; params: Params }) {
   const { showMath } = useUi()
@@ -15,7 +15,7 @@ export function Equation({ features, params }: { features: FeatureVector; params
     weight: params.weights[featureKey],
     product: features[featureKey] * params.weights[featureKey],
   }))
-  const sum = terms.reduce((total, term) => total + term.product, 0) + params.bias
+  const sum = terms.reduce((total, term) => total + term.product, 0)
 
   if (!showMath) {
     return (
@@ -31,10 +31,6 @@ export function Equation({ features, params }: { features: FeatureVector; params
             </span>
           </div>
         ))}
-        <div className="flex items-center justify-between rounded-lg bg-bun/20 px-3 py-1">
-          <span>Bias always adds</span>
-          <span className="font-mono">{formatSigned(params.bias)}</span>
-        </div>
         <div className="flex items-center justify-between rounded-lg bg-ink px-3 py-1 font-bold text-paper">
           <span>Total score</span>
           <span className="font-mono">{formatSigned(sum)}</span>
@@ -53,9 +49,6 @@ export function Equation({ features, params }: { features: FeatureVector; params
           <span className="text-ink/40">({FEATURE_LABELS[term.featureKey]})</span>
         </div>
       ))}
-      <div className="pl-4">
-        {formatSigned(params.bias)} <span className="text-ink/40">(bias)</span>
-      </div>
       <div className="mt-1 border-t border-ink/20 pt-1 font-bold">= {formatSigned(sum)}</div>
     </div>
   )

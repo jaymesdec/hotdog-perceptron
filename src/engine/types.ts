@@ -27,10 +27,10 @@ export type FeatureVector = Record<FeatureKey, Bit>
 /** 1 means "Hot dog", 0 means "Not hot dog". */
 export type Label = 0 | 1
 
-/** The learnable parameters: one weight per feature plus a single bias. */
+/** The learnable parameters: one weight per feature. (Version one has no bias —
+ * the focus is entirely on the input weights.) */
 export interface Params {
   weights: Record<FeatureKey, number>
-  bias: number
 }
 
 /** error = label − prediction, so it is always -1, 0, or 1. */

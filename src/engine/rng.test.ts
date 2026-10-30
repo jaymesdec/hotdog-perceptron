@@ -36,15 +36,13 @@ describe('randomParams', () => {
     expect(randomParams(7)).toEqual(randomParams(7))
   })
 
-  it('INVARIANT: every weight and the bias lie within [-1, 1]', () => {
+  it('INVARIANT: every weight lies within [-1, 1]', () => {
     for (const seed of [0, 1, 42, 999, 123456]) {
       const params = randomParams(seed)
       for (const featureKey of FEATURE_KEYS) {
         expect(params.weights[featureKey]).toBeGreaterThanOrEqual(INITIAL_PARAM_MIN)
         expect(params.weights[featureKey]).toBeLessThanOrEqual(INITIAL_PARAM_MAX)
       }
-      expect(params.bias).toBeGreaterThanOrEqual(INITIAL_PARAM_MIN)
-      expect(params.bias).toBeLessThanOrEqual(INITIAL_PARAM_MAX)
     }
   })
 

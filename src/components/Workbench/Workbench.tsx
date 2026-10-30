@@ -26,7 +26,7 @@ export function Workbench({
   /** Whether to show the item's true label (hidden in test until revealed). */
   showLabel: boolean
   pulse?: boolean
-  changedKeys?: ReadonlySet<FeatureKey | 'bias'>
+  changedKeys?: ReadonlySet<FeatureKey>
   reducedMotion?: boolean
 }) {
   const scoreValue = score(item.features, params)

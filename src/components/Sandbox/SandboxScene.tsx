@@ -61,12 +61,6 @@ export function SandboxScene({ onDone }: { onDone: () => void }) {
                   onChange={(value) => dispatch({ type: 'setSandboxWeight', feature: featureKey as FeatureKey, value })}
                 />
               ))}
-              <SliderRow
-                label="bias"
-                concept="bias"
-                value={state.sandboxParams.bias}
-                onChange={(value) => dispatch({ type: 'setSandboxBias', value })}
-              />
             </div>
           </div>
 
@@ -86,7 +80,7 @@ function SliderRow({
   onChange,
 }: {
   label: string
-  concept: 'weight' | 'bias'
+  concept: 'weight'
   value: number
   onChange: (value: number) => void
 }) {

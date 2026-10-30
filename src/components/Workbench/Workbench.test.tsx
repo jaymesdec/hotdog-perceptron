@@ -7,25 +7,25 @@ import type { Params } from '../../engine/types'
 
 const item = getItem('hd_ketchup')! // features (1,0,1)
 
-function params(ketchup: number, mustard: number, bun: number, bias: number): Params {
-  return { weights: { ketchup, mustard, bun }, bias }
+function params(ketchup: number, mustard: number, bun: number): Params {
+  return { weights: { ketchup, mustard, bun } }
 }
 
 describe('Workbench', () => {
   it('shows a prediction that matches the computed score', () => {
-    // 1·2 + 0·1 + 1·2 + (-1) = 3 >= 0 -> Hot dog
-    renderWithUi(<Workbench item={item} params={params(2, 1, 2, -1)} showLabel />)
-    expect(screen.getByText(/at or above the line → Hot dog/i)).toBeInTheDocument()
+    // 1·2 + 0·1 + 1·2 = 4 > 0 -> Hot dog
+    renderWithUi(<Workbench item={item} params={params(2, 1, 2)} showLabel />)
+    expect(screen.getByText(/above the line → Hot dog/i)).toBeInTheDocument()
   })
 
   it('predicts Not hot dog when the score is negative', () => {
-    // 1·0 + 0 + 1·0 + (-1) = -1 < 0
-    renderWithUi(<Workbench item={item} params={params(0, 0, 0, -1)} showLabel />)
-    expect(screen.getByText(/below the line → Not hot dog/i)).toBeInTheDocument()
+    // 1·-1 + 0 + 1·0 = -1 < 0
+    renderWithUi(<Workbench item={item} params={params(-1, 0, 0)} showLabel />)
+    expect(screen.getByText(/not above the line → Not hot dog/i)).toBeInTheDocument()
   })
 
   it('R11 GUARD: never presents the score as a percentage, confidence, or probability', () => {
-    const { container } = renderWithUi(<Workbench item={item} params={params(2, 1, 2, -1)} showLabel />)
+    const { container } = renderWithUi(<Workbench item={item} params={params(2, 1, 2)} showLabel />)
     const text = container.textContent ?? ''
     expect(text).not.toMatch(/%/)
     expect(text.toLowerCase()).not.toMatch(/confiden/)
@@ -35,20 +35,20 @@ describe('Workbench', () => {
   })
 
   it('distinguishes negative weights without relying on color (dashed wire)', () => {
-    const { container } = renderWithUi(<Workbench item={item} params={params(-2, 1, 2, 0)} showLabel />)
+    const { container } = renderWithUi(<Workbench item={item} params={params(-2, 1, 2)} showLabel />)
     // The ketchup wire (active, negative weight) should be dashed.
     const dashedWires = container.querySelectorAll('path[stroke-dasharray]')
     expect(dashedWires.length).toBeGreaterThan(0)
   })
 
   it('hides the true label when showLabel is false (test mode)', () => {
-    renderWithUi(<Workbench item={item} params={params(2, 1, 2, -1)} showLabel={false} />)
+    renderWithUi(<Workbench item={item} params={params(2, 1, 2)} showLabel={false} />)
     expect(screen.getByText(/label hidden in test/i)).toBeInTheDocument()
   })
 
-  it('predicts Hot dog at exactly the threshold (score = 0, inclusive)', () => {
-    // All-zero params over any features gives score 0 -> at or above the line.
-    renderWithUi(<Workbench item={item} params={params(0, 0, 0, 0)} showLabel />)
-    expect(screen.getByText(/at or above the line → Hot dog/i)).toBeInTheDocument()
+  it('predicts Not hot dog at exactly the threshold (score = 0, strict)', () => {
+    // All-zero weights give score 0 -> not above the line -> Not hot dog.
+    renderWithUi(<Workbench item={item} params={params(0, 0, 0)} showLabel />)
+    expect(screen.getByText(/not above the line → Not hot dog/i)).toBeInTheDocument()
   })
 })

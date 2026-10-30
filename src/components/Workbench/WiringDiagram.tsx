@@ -1,18 +1,17 @@
 import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey, type FeatureVector, type Params } from '../../engine/types'
-import { formatSigned } from './ScoreTrack'
 
 /**
  * The spatially-causal wiring (spec §5B, §7): inputs flow along weighted
- * connections into a sum, with a separate bias block. Causality is left→right:
- * inputs → multiply by weight → sum (+ bias) → score.
+ * connections into a sum. Causality is left→right:
+ * inputs → multiply by weight → sum → score. (No bias in version one.)
  *
  * - Negative weights are drawn as dashed wires with a "−" glyph, distinct from
  *   the solid positive wires WITHOUT relying on color alone (spec §10).
- * - When `pulse` is set, only the active-input connections and the bias pulse
+ * - When `pulse` is set, only the active-input connections pulse
  *   (spec §7, visible learning pulse). Inactive features stay still.
  */
-const INPUT_Y: Record<FeatureKey, number> = { ketchup: 46, mustard: 128, bun: 210 }
-const SUM = { x: 360, y: 128 }
+const INPUT_Y: Record<FeatureKey, number> = { ketchup: 40, mustard: 110, bun: 180 }
+const SUM = { x: 360, y: 110 }
 
 export function WiringDiagram({
   features,
@@ -24,11 +23,11 @@ export function WiringDiagram({
   features: FeatureVector
   params: Params
   pulse?: boolean
-  changedKeys?: ReadonlySet<FeatureKey | 'bias'>
+  changedKeys?: ReadonlySet<FeatureKey>
   reducedMotion?: boolean
 }) {
   return (
-    <svg viewBox="0 0 460 260" className="w-full" role="img" aria-label="Perceptron wiring: inputs times weights, summed with the bias.">
+    <svg viewBox="0 0 460 220" className="w-full" role="img" aria-label="Perceptron wiring: inputs times weights, summed into a score.">
       {FEATURE_KEYS.map((featureKey) => {
         const active = features[featureKey] === 1
         const weight = params.weights[featureKey]
@@ -79,28 +78,6 @@ export function WiringDiagram({
           </g>
         )
       })}
-
-      {/* bias block — feeds the sum but is not a weight on any feature */}
-      <g>
-        <rect
-          x="300"
-          y="214"
-          width="120"
-          height="38"
-          rx="10"
-          fill="#F6E2B8"
-          stroke="#2B2320"
-          strokeOpacity="0.4"
-          className={pulse && changedKeys?.has('bias') && !reducedMotion ? 'animate-pulseWire' : undefined}
-        />
-        <text x="360" y="231" textAnchor="middle" fontSize="11" fontWeight="600">
-          bias
-        </text>
-        <text x="360" y="246" textAnchor="middle" fontSize="12" fontFamily="monospace" fontWeight="bold">
-          {formatSigned(params.bias)}
-        </text>
-        <path d={`M360 214 L360 ${SUM.y + 34}`} stroke="#2B2320" strokeOpacity="0.4" strokeWidth="2" strokeDasharray="4 4" />
-      </g>
 
       {/* sum node */}
       <g>

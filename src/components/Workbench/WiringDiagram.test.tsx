@@ -4,8 +4,8 @@ import { WiringDiagram } from './WiringDiagram'
 import type { FeatureVector, Params } from '../../engine/types'
 
 const features: FeatureVector = { ketchup: 1, mustard: 0, bun: 1 }
-const params: Params = { weights: { ketchup: 1, mustard: 1, bun: 1 }, bias: 0 }
-const changed = new Set<'ketchup' | 'mustard' | 'bun' | 'bias'>(['ketchup', 'bias'])
+const params: Params = { weights: { ketchup: 1, mustard: 1, bun: 1 } }
+const changed = new Set<'ketchup' | 'mustard' | 'bun'>(['ketchup', 'bun'])
 
 describe('WiringDiagram learning pulse (spec §7, §10)', () => {
   it('pulses changed active connections when motion is allowed', () => {
@@ -29,7 +29,7 @@ describe('WiringDiagram learning pulse (spec §7, §10)', () => {
         features={features}
         params={params}
         pulse
-        changedKeys={new Set(['mustard'])}
+        changedKeys={new Set<'ketchup' | 'mustard' | 'bun'>(['mustard'])}
         reducedMotion={false}
       />,
     )

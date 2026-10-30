@@ -21,7 +21,7 @@ function testModeState(): AppState {
 describe('TestScene (spec §6 Scene 6)', () => {
   it('shows a prominent locked banner and no update controls', () => {
     renderWithProviders(<TestScene onReflect={() => {}} />, testModeState())
-    expect(screen.getByText(/TEST MODE — weights and bias locked/i)).toBeInTheDocument()
+    expect(screen.getByText(/TEST MODE — weights locked/i)).toBeInTheDocument()
     // None of the training update controls are present.
     expect(screen.queryByRole('button', { name: /apply learning update/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /^predict$/i })).toBeNull()

@@ -44,10 +44,7 @@ export function randomParams(seed: number): Params {
   for (const featureKey of FEATURE_KEYS) {
     weights[featureKey] = toParamRange(next())
   }
-  return {
-    weights,
-    bias: toParamRange(next()),
-  }
+  return { weights }
 }
 
 /**

@@ -11,13 +11,12 @@ import { ExplainThis } from '../common/ExplainThis'
 import { Verdict, CorrectnessMark } from '../common/Verdict'
 import { formatSigned } from '../Workbench/ScoreTrack'
 
-/** Keys whose value differs between two parameter sets. */
-function changedParamKeys(before: Params, after: Params): Set<FeatureKey | 'bias'> {
-  const changed = new Set<FeatureKey | 'bias'>()
+/** Feature weights whose value differs between two parameter sets. */
+function changedParamKeys(before: Params, after: Params): Set<FeatureKey> {
+  const changed = new Set<FeatureKey>()
   for (const featureKey of FEATURE_KEYS) {
     if (before.weights[featureKey] !== after.weights[featureKey]) changed.add(featureKey)
   }
-  if (before.bias !== after.bias) changed.add('bias')
   return changed
 }
 
@@ -25,7 +24,7 @@ export function TrainingScene() {
   const { state, dispatch } = useStore()
   const reducedMotion = useReducedMotion()
   const item = currentTrainingItem(state)
-  const [guesses, setGuesses] = useState<Set<FeatureKey | 'bias'>>(new Set())
+  const [guesses, setGuesses] = useState<Set<FeatureKey>>(new Set())
   const [peek, setPeek] = useState(false)
 
   // In the resolved phase the run params are already the post-update params, so
@@ -42,7 +41,7 @@ export function TrainingScene() {
 
   if (!item) return null
 
-  const toggleGuess = (key: FeatureKey | 'bias') => {
+  const toggleGuess = (key: FeatureKey) => {
     setGuesses((previous) => {
       const next = new Set(previous)
       if (next.has(key)) next.delete(key)
@@ -134,7 +133,6 @@ export function TrainingScene() {
                       onClick={() => toggleGuess(featureKey)}
                     />
                   ))}
-                  <GuessChip label="bias" active={guesses.has('bias')} onClick={() => toggleGuess('bias')} />
                 </div>
                 <div className="flex justify-end">
                   <Button onClick={() => dispatch({ type: 'applyUpdate' })}>Apply learning update</Button>
@@ -208,8 +206,8 @@ function ResolvedPanel({
   onUndo,
 }: {
   entry: HistoryEntry
-  guesses: Set<FeatureKey | 'bias'>
-  changedKeys: Set<FeatureKey | 'bias'>
+  guesses: Set<FeatureKey>
+  changedKeys: Set<FeatureKey>
   peek: boolean
   onPeek: () => void
   onNext: () => void
@@ -224,7 +222,7 @@ function ResolvedPanel({
       {entry.changed ? (
         <>
           <p className="text-sm font-semibold text-ink">
-            Mistake → the classic rule nudged the active inputs and the bias:
+            Mistake → the classic rule nudged the active inputs:
           </p>
           <div className="flex flex-wrap gap-2">
             {FEATURE_KEYS.map((featureKey) => (
@@ -237,13 +235,6 @@ function ResolvedPanel({
                 guessedCorrectly={guesses.has(featureKey) === changedKeys.has(featureKey)}
               />
             ))}
-            <DeltaRow
-              name="bias"
-              before={entry.paramsBefore.bias}
-              after={entry.paramsAfter.bias}
-              changed={changedKeys.has('bias')}
-              guessedCorrectly={guesses.has('bias') === changedKeys.has('bias')}
-            />
           </div>
         </>
       ) : (

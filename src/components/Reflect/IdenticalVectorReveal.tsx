@@ -19,7 +19,7 @@ export function IdenticalVectorReveal() {
       <h3 className="font-display text-lg font-bold text-ink">Why can't it tell these apart?</h3>
       <p className="mt-1 text-sm text-ink/70">
         These two pictures look different to you. But the detector only sees three numbers — and for these two,
-        those numbers are <strong>identical</strong>. No weights or bias can ever separate them.
+        those numbers are <strong>identical</strong>. No set of weights can ever separate them.
       </p>
       <div className="mt-4 grid items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
         <FoodFace itemName={hotDog.name} label={1} art={<FoodArt item={hotDog} className="h-24 w-24" />} />

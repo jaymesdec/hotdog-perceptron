@@ -23,26 +23,26 @@ async function step(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('TrainingScene (spec §6 Scene 4)', () => {
-  it('on a mistake, applying the update changes the active weight and bias and pulses', async () => {
+  it('on a mistake, applying the update changes the active weight', async () => {
     const user = userEvent.setup()
-    // bun weight -1 misclassifies the plain hot dog (score -1 -> Not hot dog).
+    // All-zero weights: the plain hot dog scores 0 -> predicted Not hot dog (strict).
     renderWithProviders(
       <TrainingScene />,
-      trainingStateWithParams({ weights: { ketchup: 0, mustard: 0, bun: -1 }, bias: 0 }),
+      trainingStateWithParams({ weights: { ketchup: 0, mustard: 0, bun: 0 } }),
     )
     await step(user)
     await user.click(screen.getByRole('button', { name: /apply learning update/i }))
-    // Bun is the only active feature; its weight moves -1 -> 0, bias 0 -> +1.
+    // Bun is the only active feature; its weight moves +0 -> +1.
     expect(screen.getByText(/mistake → the classic rule/i)).toBeInTheDocument()
-    expect(screen.getByText(/-1 → \+0/)).toBeInTheDocument() // bun weight delta
+    expect(screen.getByText(/\+0 → \+1/)).toBeInTheDocument() // bun weight delta
   })
 
   it('on a correct prediction, shows "No update" and offers no deltas', async () => {
     const user = userEvent.setup()
-    // bun weight 2, bias -1 correctly classifies the plain hot dog (score +1).
+    // bun weight 2 correctly classifies the plain hot dog (score 2 > 0).
     renderWithProviders(
       <TrainingScene />,
-      trainingStateWithParams({ weights: { ketchup: 0, mustard: 0, bun: 2 }, bias: -1 }),
+      trainingStateWithParams({ weights: { ketchup: 0, mustard: 0, bun: 2 } }),
     )
     await step(user)
     await user.click(screen.getByRole('button', { name: /check what happens/i }))
@@ -52,7 +52,7 @@ describe('TrainingScene (spec §6 Scene 4)', () => {
   it('shows the persistent progress indicator', () => {
     renderWithProviders(
       <TrainingScene />,
-      trainingStateWithParams({ weights: { ketchup: 0, mustard: 0, bun: 2 }, bias: -1 }),
+      trainingStateWithParams({ weights: { ketchup: 0, mustard: 0, bun: 2 } }),
     )
     expect(screen.getByText(/Example 1 of 2 · Epoch 1/)).toBeInTheDocument()
   })

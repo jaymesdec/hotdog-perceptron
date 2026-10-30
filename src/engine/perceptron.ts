@@ -5,12 +5,16 @@
  * mutation. These are the correctness-critical invariants the whole app
  * depends on, so they live in one small, independently-tested module.
  *
- * score      = Σ featureᵢ · weightᵢ + bias
- * prediction = 1 ("Hot dog") if score >= 0, else 0 ("Not hot dog")
+ * score      = Σ featureᵢ · weightᵢ   (no bias — the focus is the input weights)
+ * prediction = 1 ("Hot dog") if score > 0, else 0 ("Not hot dog")
  * error      = trueLabel − prediction
  * update     = classic rule, learning rate fixed at 1 (not exposed in v1):
  *                weightᵢ_new = weightᵢ_old + error · featureᵢ
- *                bias_new     = bias_old + error
+ *
+ * Because there is no bias, the decision boundary passes through the origin: an
+ * item with no features present scores exactly 0. The threshold is therefore
+ * STRICT (score must be > 0 to predict "Hot dog"), so "nothing detected" reads
+ * as "not a hot dog" and the dataset stays learnable with weights alone.
  */
 
 import {
@@ -21,25 +25,26 @@ import {
   type PerceptronError,
 } from './types'
 
-/** The decision threshold is fixed at zero (spec §3). */
+/** The decision threshold is fixed at zero. */
 export const DECISION_THRESHOLD = 0
 
 /** The learning rate is fixed at 1 and intentionally not exposed in v1 (spec §3). */
 export const LEARNING_RATE = 1
 
-/** Weighted sum of the inputs plus the bias. This is the decision margin — the
- * signed distance from the decision line — never a probability (spec §3, §9). */
+/** Weighted sum of the inputs. This is the decision margin — the signed distance
+ * from the decision line — never a probability (spec §3, §9). */
 export function score(features: FeatureVector, params: Params): number {
-  let runningScore = params.bias
+  let runningScore = 0
   for (const featureKey of FEATURE_KEYS) {
     runningScore += features[featureKey] * params.weights[featureKey]
   }
   return runningScore
 }
 
-/** Step activation: a score at or above the threshold predicts "Hot dog". */
+/** Step activation: a score strictly above the threshold predicts "Hot dog".
+ * A score of exactly 0 (e.g. no features present) predicts "Not hot dog". */
 export function predict(scoreValue: number): Label {
-  return scoreValue >= DECISION_THRESHOLD ? 1 : 0
+  return scoreValue > DECISION_THRESHOLD ? 1 : 0
 }
 
 /** Convenience: score then activate in one call. */
@@ -58,7 +63,6 @@ export function computeError(trueLabel: Label, prediction: Label): PerceptronErr
  * Invariants enforced here (spec §9):
  *  - error === 0  ⇒  params are returned unchanged (correct ⇒ no update).
  *  - featureᵢ === 0  ⇒  weightᵢ is unchanged (zero input ⇒ zero weight update).
- *  - the bias update is independent of feature values.
  */
 export function update(
   params: Params,
@@ -75,10 +79,7 @@ export function update(
       params.weights[featureKey] + LEARNING_RATE * perceptronError * features[featureKey]
   }
 
-  return {
-    weights: updatedWeights,
-    bias: params.bias + LEARNING_RATE * perceptronError,
-  }
+  return { weights: updatedWeights }
 }
 
 /**
